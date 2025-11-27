@@ -11,6 +11,7 @@ A comprehensive Laravel package for automatic database audit logging using MySQL
 ✅ **Raw SQL Support** - Works with both Eloquent and raw SQL queries  
 ✅ **Easy Setup** - Simple installation and configuration  
 ✅ **Flexible** - Exclude specific tables from auditing  
+✅ **No Extra Dependencies** - Works without Doctrine DBAL (Laravel 10+ compatible)  
 
 ## Requirements
 

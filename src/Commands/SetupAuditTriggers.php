@@ -79,31 +79,21 @@ class SetupAuditTriggers extends Command
 
     /**
      * Get all tables in the database.
-     * Compatible with Laravel 8-12+
      *
      * @return array
      */
     protected function getTables()
     {
-        $connection = DB::connection();
+        $database = DB::getDatabaseName();
+        $tables = DB::select("
+            SELECT TABLE_NAME 
+            FROM INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_SCHEMA = ? 
+            AND TABLE_TYPE = 'BASE TABLE'
+        ", [$database]);
         
-        // Try Laravel 8-10 method (Doctrine)
-        if (method_exists($connection, 'getDoctrineSchemaManager')) {
-            try {
-                return $connection->getDoctrineSchemaManager()->listTableNames();
-            } catch (\Exception $e) {
-                // Fall through to alternative method
-            }
-        }
-        
-        // Laravel 11+ / Fallback method using raw SQL
-        $databaseName = DB::getDatabaseName();
-        $tables = DB::select("SHOW TABLES");
-        
-        $tableKey = "Tables_in_{$databaseName}";
-        
-        return array_map(function($table) use ($tableKey) {
-            return $table->$tableKey;
+        return array_map(function($table) {
+            return $table->TABLE_NAME;
         }, $tables);
     }
 
