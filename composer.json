@@ -1,0 +1,39 @@
+{
+    "name": "superaudit/super-audit",
+    "description": "A comprehensive Laravel package for automatic database audit logging using MySQL triggers. Tracks all INSERT, UPDATE, and DELETE operations with old and new data.",
+    "keywords": [
+        "laravel",
+        "audit",
+        "logging",
+        "database",
+        "tracking",
+        "triggers"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your-email@example.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3|^8.0|^8.1|^8.2|^8.3",
+        "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
+        "illuminate/database": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SuperAudit\\SuperAudit\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SuperAudit\\SuperAudit\\SuperAuditServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
