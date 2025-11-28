@@ -57,6 +57,34 @@ This command creates triggers for all your database tables (except excluded ones
 - `--drop` - Drop existing triggers before creating new ones
 - `--tables=users,posts` - Only setup triggers for specific tables
 
+### Available Commands
+
+**Setup Triggers** (First time or new tables)
+```bash
+php artisan audit:setup-triggers
+```
+
+**Drop Triggers** (Remove all triggers)
+```bash
+php artisan audit:drop-triggers
+```
+Options:
+- `--force` - Skip confirmation prompt
+- `--tables=users,posts` - Only drop triggers for specific tables
+
+**Rebuild Triggers** (After schema changes)
+```bash
+php artisan audit:rebuild-triggers
+```
+This drops all existing triggers and recreates them. Perfect for:
+- After adding/removing columns
+- After changing column types
+- After adding new tables
+
+Options:
+- `--force` - Skip confirmation prompt
+- `--tables=users,posts` - Only rebuild triggers for specific tables
+
 ## Configuration
 
 Edit `config/super-audit.php`:

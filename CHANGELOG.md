@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2024-11-28
+
+### Added
+- **New Command: `audit:drop-triggers`** - Drop all Super Audit triggers from database
+  - `--force` option to skip confirmation
+  - `--tables` option to target specific tables
+  - Progress bar for better UX
+  - Safety confirmation prompt
+
+- **New Command: `audit:rebuild-triggers`** - Drop and recreate all triggers
+  - Perfect for use after database schema changes
+  - Combines drop and setup into one command
+  - `--force` option to skip confirmation
+  - `--tables` option to target specific tables
+  - Beautiful UI with progress feedback
+
+### Improved
+- Enhanced documentation in README for all commands
+- Better command descriptions and help text
+- Added use cases for each command
+
+### Testing
+- Verified compatibility with Laravel 8, 10, and 12
+- Tested trigger drop and rebuild workflows
+
 ## [1.0.0] - 2024-11-27
 
 ### Added

@@ -5,6 +5,8 @@ namespace SuperAudit\SuperAudit;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
 use SuperAudit\SuperAudit\Commands\SetupAuditTriggers;
+use SuperAudit\SuperAudit\Commands\DropAuditTriggers;
+use SuperAudit\SuperAudit\Commands\RebuildAuditTriggers;
 use SuperAudit\SuperAudit\Middleware\SetAuditVariables;
 
 /**
@@ -53,6 +55,8 @@ class SuperAuditServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 SetupAuditTriggers::class,
+                DropAuditTriggers::class,
+                RebuildAuditTriggers::class,
             ]);
 
             // Set session variables for console commands
