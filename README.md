@@ -229,7 +229,7 @@ MIT License
 ## Support
 
 For issues, questions, or contributions, please visit:
-https://github.com/superaudit/super-audit
+https://github.com/suleman09522/super-audit
 
 ## Credits
 

@@ -306,17 +306,20 @@ class SetupAuditTriggers extends Command
             AFTER UPDATE ON `{$table}`
             FOR EACH ROW
             BEGIN
-                INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
-                VALUES (
-                    '{$table}',
-                    NEW.`{$primaryKeyColumn}`,
-                    'update',
-                    @current_user_id,
-                    @current_url,
-                    {$oldJsonObject},
-                    {$newJsonObject},
-                    NOW()
-                );
+                -- Only insert if there's an actual change in data
+                IF {$oldJsonObject} != {$newJsonObject} THEN
+                    INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
+                    VALUES (
+                        '{$table}',
+                        NEW.`{$primaryKeyColumn}`,
+                        'update',
+                        @current_user_id,
+                        @current_url,
+                        {$oldJsonObject},
+                        {$newJsonObject},
+                        NOW()
+                    );
+                END IF;
             END;
         ");
     }
