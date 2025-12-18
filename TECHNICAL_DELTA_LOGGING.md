@@ -295,10 +295,7 @@ protected function buildChangedFieldsConcatLogic($columns, $prefix)
         // Build JSON key-value pair for this column if it changed
         $jsonPair = 
             "CONCAT('\"', '{$escapedColumn}', '\":', " .
-            "COALESCE(" .
-                "CONCAT('\"', REPLACE({$prefix}.`{$column}`, '\"', '\\\\\"'), '\"'), " .
-                "'null'" .
-            "))";
+            "COALESCE(JSON_QUOTE({$prefix}.`{$column}`), 'null'))";
         
         // Only include this pair IF the column changed
         $parts[] = "IF({$condition}, {$jsonPair}, NULL)";
@@ -374,7 +371,7 @@ assertNull($log->new_data['middle_name']);
    - Solution: Consider excluding rarely-changed columns from audit
 
 2. **Special Characters**: JSON escaping for quotes, backslashes, etc.
-   - Solution: Properly escaped using `REPLACE()` function
+   - Solution: Properly escaped using `JSON_QUOTE()` function
 
 3. **Binary Data**: BLOB columns are already excluded
    - Solution: Configured in `$skipDataTypes` array

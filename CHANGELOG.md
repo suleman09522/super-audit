@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-12-18
+
+### Fixed
+- **Critical Fix for Delta Logging**: Fixed `Integrity constraint violation` due to improper JSON escaping in `UPDATE` triggers.
+  - Now uses `JSON_QUOTE()` to safely escape all values, including newlines, tabs, and quotes.
+  - Resolves issue where fields with complex content (like HTML descriptions) caused audit logging to fail.
+
 ## [1.2.0] - 2025-12-18
 
 ### Added
