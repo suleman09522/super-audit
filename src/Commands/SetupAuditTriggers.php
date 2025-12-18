@@ -257,6 +257,97 @@ class SetupAuditTriggers extends Command
     }
 
     /**
+     * Build SQL logic to store only changed fields in audit log.
+     *
+     * @param array $columns
+     * @param string $table
+     * @param string $primaryKeyColumn
+     * @return string
+     */
+    protected function buildChangedFieldsLogic($columns, $table, $primaryKeyColumn)
+    {
+        $oldJsonParts = [];
+        $newJsonParts = [];
+        
+        foreach ($columns as $column) {
+            $escapedColumn = str_replace("'", "\\'", $column);
+            
+            // Build condition to check if column changed
+            // Need to handle NULL values properly (NULL != NULL comparison)
+            $condition = "(OLD.`{$column}` IS NULL AND NEW.`{$column}` IS NOT NULL) OR " .
+                        "(OLD.`{$column}` IS NOT NULL AND NEW.`{$column}` IS NULL) OR " .
+                        "(OLD.`{$column}` != NEW.`{$column}`)";
+            
+            // For each changed column, add it to the JSON parts with a conditional
+            $oldJsonParts[] = "IF({$condition}, '{$escapedColumn}', NULL), " .
+                            "IF({$condition}, OLD.`{$column}`, NULL)";
+            $newJsonParts[] = "IF({$condition}, '{$escapedColumn}', NULL), " .
+                            "IF({$condition}, NEW.`{$column}`, NULL)";
+        }
+        
+        // Build the complete INSERT statement with dynamic JSON objects
+        // We'll use a stored procedure-like approach to build JSON only with changed fields
+        $logic = "
+                    SET @old_json = CONCAT('{', 
+                        TRIM(BOTH ',' FROM CONCAT_WS(',',
+                            " . $this->buildChangedFieldsConcatLogic($columns, 'OLD') . "
+                        )),
+                    '}');
+                    
+                    SET @new_json = CONCAT('{', 
+                        TRIM(BOTH ',' FROM CONCAT_WS(',',
+                            " . $this->buildChangedFieldsConcatLogic($columns, 'NEW') . "
+                        )),
+                    '}');
+                    
+                    -- Only log if there are actual changes
+                    IF @old_json != '{}' AND @new_json != '{}' THEN
+                        INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
+                        VALUES (
+                            '{$table}',
+                            NEW.`{$primaryKeyColumn}`,
+                            'update',
+                            @current_user_id,
+                            @current_url,
+                            @old_json,
+                            @new_json,
+                            NOW()
+                        );
+                    END IF;";
+        
+        return $logic;
+    }
+    
+    /**
+     * Build CONCAT_WS logic for changed fields detection.
+     *
+     * @param array $columns
+     * @param string $prefix (OLD or NEW)
+     * @return string
+     */
+    protected function buildChangedFieldsConcatLogic($columns, $prefix)
+    {
+        $parts = [];
+        
+        foreach ($columns as $column) {
+            $escapedColumn = str_replace("'", "\\'", $column);
+            
+            // Build condition to check if column changed
+            $condition = "(OLD.`{$column}` IS NULL AND NEW.`{$column}` IS NOT NULL) OR " .
+                        "(OLD.`{$column}` IS NOT NULL AND NEW.`{$column}` IS NULL) OR " .
+                        "(OLD.`{$column}` != NEW.`{$column}`)";
+            
+            // Build JSON key-value pair for this column if it changed
+            $jsonPair = "CONCAT('\"', '{$escapedColumn}', '\":', " .
+                       "COALESCE(CONCAT('\"', REPLACE({$prefix}.`{$column}`, '\"', '\\\\\"'), '\"'), 'null'))";
+            
+            $parts[] = "IF({$condition}, {$jsonPair}, NULL)";
+        }
+        
+        return implode(",\n                            ", $parts);
+    }
+
+    /**
      * Create AFTER INSERT trigger.
      *
      * @param string $table
@@ -300,6 +391,12 @@ class SetupAuditTriggers extends Command
     protected function createUpdateTrigger($table, $primaryKeyColumn, $oldJsonObject, $newJsonObject)
     {
         $triggerName = "after_update_{$table}";
+        
+        // Get columns for change detection
+        $columns = $this->getTableColumns($table);
+        
+        // Build the conditional JSON objects that only include changed fields
+        $changedFieldsLogic = $this->buildChangedFieldsLogic($columns, $table, $primaryKeyColumn);
 
         DB::unprepared("
             CREATE TRIGGER {$triggerName}
@@ -308,17 +405,7 @@ class SetupAuditTriggers extends Command
             BEGIN
                 -- Only insert if there's an actual change in data
                 IF {$oldJsonObject} != {$newJsonObject} THEN
-                    INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
-                    VALUES (
-                        '{$table}',
-                        NEW.`{$primaryKeyColumn}`,
-                        'update',
-                        @current_user_id,
-                        @current_url,
-                        {$oldJsonObject},
-                        {$newJsonObject},
-                        NOW()
-                    );
+                    {$changedFieldsLogic}
                 END IF;
             END;
         ");

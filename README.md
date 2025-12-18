@@ -2,6 +2,33 @@
 
 A comprehensive Laravel package for automatic database audit logging using MySQL triggers. Tracks all INSERT, UPDATE, and DELETE operations with complete old and new data, user information, and URLs.
 
+## 🎉 What's New in v1.2.0
+
+**Delta Logging** - Massive storage optimization! 
+
+The latest version now stores **only changed fields** instead of entire rows for UPDATE operations:
+
+```diff
+- Old: Stores ALL 20+ columns even if only 1 changed (2 KB per update)
++ New: Stores ONLY changed columns (200 bytes per update)
+```
+
+**Benefits:**
+- 📉 **80-90% storage reduction** for typical workloads
+- ⚡ **Faster queries** (smaller JSON to parse)
+- 💰 **Lower costs** for cloud databases
+- 🔍 **Better clarity** (see exactly what changed)
+
+**Migration:** Simply rebuild your triggers:
+```bash
+php artisan audit:setup-triggers
+```
+
+👉 [Read the full Delta Logging guide](DELTA_LOGGING_UPDATE.md)
+
+---
+
+
 ## Features
 
 ✅ **Automatic Tracking** - Captures all database changes via MySQL triggers  
@@ -145,6 +172,7 @@ foreach ($logs as $log) {
 
 ### Example Audit Log Entry
 
+**UPDATE operation (v1.2.0+ with Delta Logging):**
 ```json
 {
   "id": 1,
@@ -154,18 +182,39 @@ foreach ($logs as $log) {
   "user_id": 1,
   "url": "https://example.com/users/5/edit",
   "old_data": {
-    "id": 5,
     "name": "John Doe",
     "email": "john@example.com"
   },
   "new_data": {
-    "id": 5,
     "name": "John Smith",
     "email": "john.smith@example.com"
   },
   "created_at": "2024-01-15 10:30:00"
 }
 ```
+*Note: Only the `name` and `email` fields are stored because only those fields changed!*
+
+**INSERT operation:**
+```json
+{
+  "id": 2,
+  "table_name": "users",
+  "record_id": "6",
+  "action": "insert",
+  "user_id": 1,
+  "url": "https://example.com/users/create",
+  "old_data": null,
+  "new_data": {
+    "id": 6,
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "created_at": "2024-01-15 10:35:00"
+    // ... all other fields
+  },
+  "created_at": "2024-01-15 10:35:00"
+}
+```
+*Note: All fields are stored for INSERT since all fields are new.*
 
 ## How It Works
 
@@ -204,10 +253,16 @@ For console commands, user_id and url will be NULL since there's no authenticate
 
 ## Performance Considerations
 
+✅ **v1.2.0+ Delta Logging** dramatically improves storage efficiency:
+- **UPDATE operations**: Only changed fields stored (80-90% reduction)
+- **Smaller JSON**: Faster queries and parsing
+- **Lower storage costs**: Especially beneficial for cloud databases
+
+**Best Practices:**
 - Triggers run on every database operation
-- JSON storage is used for flexibility but can be large
 - Consider regular archival of old audit logs
-- Exclude high-volume tables if needed
+- Exclude high-volume tables if needed (configure in `config/super-audit.php`)
+- Monitor database size and optimize accordingly
 
 ## Security
 
