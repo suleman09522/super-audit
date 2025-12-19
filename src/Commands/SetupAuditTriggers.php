@@ -35,13 +35,32 @@ class SetupAuditTriggers extends Command
         $this->info('Setting up audit triggers...');
         $this->newLine();
 
-        // Merge excluded tables from config
-        $configExcluded = config('super-audit.excluded_tables', []);
+        // setup-triggers: Merge excluded tables from config
+        $configExcluded = config('super-audit.excluded_tables');
+        
+        // Fallback check for underscore syntax
+        if (empty($configExcluded)) {
+            $configExcluded = config('super_audit.excluded_tables');
+        }
+
+        // Ensure it's an array
+        if (!is_array($configExcluded)) {
+            $configExcluded = [];
+        }
+
         $this->skipTables = array_merge($this->skipTables, $configExcluded);
 
         // Debug info to verify config is loaded
         if (!empty($configExcluded)) {
-            $this->comment('Custom excluded tables: ' . implode(', ', $configExcluded));
+            $this->comment('✓ Loaded custom excluded tables: ' . implode(', ', $configExcluded));
+        } else {
+            // Check if user has published config
+            if (file_exists(base_path('config/super-audit.php'))) {
+                 $this->warn('! Config file found at config/super-audit.php but excluded_tables is empty or not read.');
+                 $this->line('  Current config("super-audit") dump: ' . json_encode(config('super-audit')));
+            } else {
+                 $this->comment('! No custom excluded tables found. (No config/super-audit.php found or array is empty)');
+            }
         }
 
         $tables = $this->getTables();

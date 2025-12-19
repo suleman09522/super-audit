@@ -4,6 +4,13 @@
 
 
 
+
+## [1.2.4] - 2025-12-19
+
+### Improved
+- **Robust Config Loading**: Added detection for both `super-audit` and `super_audit` config keys to prevent common configuration errors.
+- **Deep Debugging**: The `setup-triggers` command now performs environment checks, verifying if `config/super-audit.php` exists and dumping the raw configuration if tables are not being detected.
+
 ## [1.2.3] - 2025-12-19
 
 ### Fixed
