@@ -2,7 +2,15 @@
 
 ## [Unreleased]
 
+
+## [1.2.2] - 2025-12-19
+
+### Fixed
+- **Excluded Tables Configuration**: Fixed issue where `excluded_tables` config was not being respected by `audit:setup-triggers` command.
+- **Drop Triggers Logic**: Fixed `audit:drop-triggers` to correctly remove triggers from tables that were recently added to the exclusion list.
+
 ## [1.2.1] - 2025-12-18
+
 
 ### Fixed
 - **Critical Fix for Delta Logging**: Fixed `Integrity constraint violation` due to improper JSON escaping in `UPDATE` triggers.
