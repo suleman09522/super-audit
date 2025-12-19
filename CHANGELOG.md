@@ -5,6 +5,12 @@
 
 
 
+
+## [1.2.5] - 2025-12-19
+
+### Fixed
+- **Direct Config File Fallback**: Implemented a failsafe mechanism that directly reads `config/super-audit.php` from disk if the Laravel config helper returns empty. This resolves issues where `excluded_tables` were ignored due to config caching or merging problems.
+
 ## [1.2.4] - 2025-12-19
 
 ### Improved

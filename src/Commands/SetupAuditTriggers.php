@@ -37,8 +37,22 @@ class SetupAuditTriggers extends Command
 
         // setup-triggers: Merge excluded tables from config
         $configExcluded = config('super-audit.excluded_tables');
+        $loadedMethod = 'framework';
+
+        // Direct File Fallback: If framework returns empty, check the actual file
+        if (empty($configExcluded) && function_exists('config_path') && file_exists(config_path('super-audit.php'))) {
+            try {
+                $directConfig = require config_path('super-audit.php');
+                if (is_array($directConfig) && !empty($directConfig['excluded_tables'])) {
+                    $configExcluded = $directConfig['excluded_tables'];
+                    $loadedMethod = 'direct_file';
+                }
+            } catch (\Throwable $e) {
+                // Squelch error, fallback to empty
+            }
+        }
         
-        // Fallback check for underscore syntax
+        // Fallback check for underscore syntax (legacy/typo support)
         if (empty($configExcluded)) {
             $configExcluded = config('super_audit.excluded_tables');
         }
@@ -52,14 +66,18 @@ class SetupAuditTriggers extends Command
 
         // Debug info to verify config is loaded
         if (!empty($configExcluded)) {
-            $this->comment('✓ Loaded custom excluded tables: ' . implode(', ', $configExcluded));
+            $msg = '✓ Loaded custom excluded tables';
+            if ($loadedMethod === 'direct_file') {
+                $msg .= ' (via direct file read)';
+            }
+            $this->comment($msg . ': ' . implode(', ', $configExcluded));
         } else {
             // Check if user has published config
             if (file_exists(base_path('config/super-audit.php'))) {
-                 $this->warn('! Config file found at config/super-audit.php but excluded_tables is empty or not read.');
-                 $this->line('  Current config("super-audit") dump: ' . json_encode(config('super-audit')));
+                 $this->warn('! Config file found at config/super-audit.php but excluded_tables is empty.');
+                 $this->line('  The command tried both framework config and direct file read.');
             } else {
-                 $this->comment('! No custom excluded tables found. (No config/super-audit.php found or array is empty)');
+                 $this->comment('! No custom excluded tables found. (No config/super-audit.php found)');
             }
         }
 
