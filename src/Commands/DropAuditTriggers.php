@@ -51,10 +51,6 @@ class DropAuditTriggers extends Command
      */
     public function handle()
     {
-        // Get excluded tables from config
-        $configExcluded = config('super-audit.excluded_tables', []);
-        $this->excludedTables = array_merge($this->excludedTables, $configExcluded);
-
         // Get tables to process
         $tables = $this->option('tables') 
             ? explode(',', $this->option('tables')) 

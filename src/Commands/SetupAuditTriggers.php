@@ -35,6 +35,10 @@ class SetupAuditTriggers extends Command
         $this->info('Setting up audit triggers...');
         $this->newLine();
 
+        // Merge excluded tables from config
+        $configExcluded = config('super-audit.excluded_tables', []);
+        $this->skipTables = array_merge($this->skipTables, $configExcluded);
+
         $tables = $this->getTables();
         $successCount = 0;
         $skippedCount = 0;
