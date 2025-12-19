@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 
+
+## [1.2.3] - 2025-12-19
+
+### Fixed
+- **Case-Insensitive Exclusion**: Table exclusion logic is now case-insensitive, ensuring tables are skipped regardless of capitalization differences.
+- **Debug Info**: Added console output to show loaded custom excluded tables, trying to help debug configuration issues.
+
 ## [1.2.2] - 2025-12-19
 
 ### Fixed

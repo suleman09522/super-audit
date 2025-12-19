@@ -39,14 +39,19 @@ class SetupAuditTriggers extends Command
         $configExcluded = config('super-audit.excluded_tables', []);
         $this->skipTables = array_merge($this->skipTables, $configExcluded);
 
+        // Debug info to verify config is loaded
+        if (!empty($configExcluded)) {
+            $this->comment('Custom excluded tables: ' . implode(', ', $configExcluded));
+        }
+
         $tables = $this->getTables();
         $successCount = 0;
         $skippedCount = 0;
         $errorCount = 0;
 
         foreach ($tables as $table) {
-            // Skip excluded tables
-            if (in_array($table, $this->skipTables)) {
+            // Skip excluded tables (case-insensitive)
+            if (in_array(strtolower($table), array_map('strtolower', $this->skipTables))) {
                 $this->line("⊘ Skipped (excluded): {$table}");
                 $skippedCount++;
                 continue;
