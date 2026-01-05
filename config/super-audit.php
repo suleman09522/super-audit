@@ -38,4 +38,15 @@ return [
     */
     'user_model' => null, // null means use config('auth.providers.users.model')
 
+    /*
+    |--------------------------------------------------------------------------
+    | Auto Recreate Triggers on Migration
+    |--------------------------------------------------------------------------
+    |
+    | When set to true, the package will automatically attempt to recreate
+    | audit triggers for any table that is modified during a migration.
+    |
+    */
+    'auto_recreate_triggers_on_migration' => true,
+
 ];

@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.0] - 2026-01-05
 
-
-
-
+### Added
+- **Automatic Trigger Recreation on Migrations**: Triggers are now automatically recreated for tables that are modified during database migrations.
+- **New Option `--table` for `audit:setup-triggers`**: Allow setting up triggers for a specific table.
+- **Config Setting**: Added `auto_recreate_triggers_on_migration` in `config/super-audit.php` (defaults to `true`).
 
 ## [1.2.5] - 2025-12-19
 

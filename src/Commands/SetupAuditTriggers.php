@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class SetupAuditTriggers extends Command
 {
-    protected $signature = 'audit:setup-triggers';
+    protected $signature = 'audit:setup-triggers {--table= : The table to set up triggers for}';
     protected $description = 'Set up database triggers for audit logging';
 
     // Data types to skip in audit logs
@@ -82,13 +82,24 @@ class SetupAuditTriggers extends Command
         }
 
         $tables = $this->getTables();
+        $targetTable = $this->option('table');
+        
+        if ($targetTable) {
+            if (in_array(strtolower($targetTable), array_map('strtolower', $tables))) {
+                $tables = [$targetTable];
+            } else {
+                $this->error("Table '{$targetTable}' not found in database.");
+                return 1;
+            }
+        }
+
         $successCount = 0;
         $skippedCount = 0;
         $errorCount = 0;
 
         foreach ($tables as $table) {
-            // Skip excluded tables (case-insensitive)
-            if (in_array(strtolower($table), array_map('strtolower', $this->skipTables))) {
+            // Skip excluded tables (case-insensitive) unless explicitly requested via --table
+            if (!$targetTable && in_array(strtolower($table), array_map('strtolower', $this->skipTables))) {
                 $this->line("⊘ Skipped (excluded): {$table}");
                 $skippedCount++;
                 continue;

@@ -8,6 +8,9 @@ use SuperAudit\SuperAudit\Commands\SetupAuditTriggers;
 use SuperAudit\SuperAudit\Commands\DropAuditTriggers;
 use SuperAudit\SuperAudit\Commands\RebuildAuditTriggers;
 use SuperAudit\SuperAudit\Middleware\SetAuditVariables;
+use Illuminate\Database\Events\MigrationsStarted;
+use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * SuperAuditServiceProvider
@@ -17,6 +20,12 @@ use SuperAudit\SuperAudit\Middleware\SetAuditVariables;
  */
 class SuperAuditServiceProvider extends ServiceProvider
 {
+    /** @var array List of tables modified during migration */
+    protected static $modifiedTables = [];
+
+    /** @var bool Flag to check if migration is running */
+    protected static $isMigrating = false;
+
     /**
      * Register services.
      *
@@ -74,5 +83,62 @@ class SuperAuditServiceProvider extends ServiceProvider
             $router->pushMiddlewareToGroup('web', SetAuditVariables::class);
             $router->pushMiddlewareToGroup('api', SetAuditVariables::class);
         }
+
+        // Auto-recreate triggers on migration
+        $this->registerMigrationListeners();
+    }
+
+    /**
+     * Register migration event listeners.
+     *
+     * @return void
+     */
+    protected function registerMigrationListeners()
+    {
+        if (!config('super-audit.auto_recreate_triggers_on_migration', true)) {
+            return;
+        }
+
+        $this->app['events']->listen(MigrationsStarted::class, function () {
+            self::$isMigrating = true;
+            self::$modifiedTables = [];
+        });
+
+        DB::listen(function ($query) {
+            if (!self::$isMigrating) {
+                return;
+            }
+
+            $sql = $query->sql;
+            // Match CREATE TABLE or ALTER TABLE queries
+            if (preg_match('/(?:CREATE|ALTER)\s+TABLE\s+[`"\[]?([\w.]+)[`"\]]?/i', $sql, $matches)) {
+                $tableName = str_replace(['`', '"', '[', ']'], '', $matches[1]);
+                if (str_contains($tableName, '.')) {
+                    $parts = explode('.', $tableName);
+                    $tableName = end($parts);
+                }
+                self::$modifiedTables[] = $tableName;
+            }
+        });
+
+        $this->app['events']->listen(MigrationsEnded::class, function () {
+            if (!self::$isMigrating) {
+                return;
+            }
+
+            self::$isMigrating = false;
+            $tables = array_unique(self::$modifiedTables);
+            self::$modifiedTables = [];
+
+            foreach ($tables as $table) {
+                try {
+                    Artisan::call('audit:setup-triggers', [
+                        '--table' => $table
+                    ]);
+                } catch (\Exception $e) {
+                    // Fail silently to not break the migration process
+                }
+            }
+        });
     }
 }
