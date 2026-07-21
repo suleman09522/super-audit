@@ -16,7 +16,7 @@ class SetupAuditTriggers extends Command
         'geometry', 'point', 'linestring', 'polygon', 'multipoint', 'multilinestring', 'multipolygon', 'geometrycollection'
     ];
 
-    // Tables to skip
+    // Tables to skip (auto-excluded, will not get triggers)
     protected $skipTables = [
         'migrations',
         'super_audit_logs',
@@ -30,10 +30,18 @@ class SetupAuditTriggers extends Command
         'personal_access_tokens'
     ];
 
+    // Tables that must NEVER get triggers under any circumstance (even with --table flag)
+    protected $hardBlockedTables = [
+        'super_audit_logs',
+    ];
+
     public function handle()
     {
         $this->info('Setting up audit triggers...');
         $this->newLine();
+
+        // Safety: always drop any accidental triggers on super_audit_logs
+        $this->cleanupAuditLogsTriggers();
 
         // setup-triggers: Merge excluded tables from config
         $configExcluded = config('super-audit.excluded_tables');
@@ -85,6 +93,11 @@ class SetupAuditTriggers extends Command
         $targetTable = $this->option('table');
         
         if ($targetTable) {
+            // Hard-blocked tables can NEVER get triggers, even with --table flag
+            if (in_array(strtolower($targetTable), array_map('strtolower', $this->hardBlockedTables))) {
+                $this->error("Table '{$targetTable}' is a protected system table and cannot have audit triggers.");
+                return 1;
+            }
             if (in_array(strtolower($targetTable), array_map('strtolower', $tables))) {
                 $tables = [$targetTable];
             } else {
@@ -98,7 +111,14 @@ class SetupAuditTriggers extends Command
         $errorCount = 0;
 
         foreach ($tables as $table) {
-            // Skip excluded tables (case-insensitive) unless explicitly requested via --table
+            // Always skip hard-blocked tables regardless of any option
+            if (in_array(strtolower($table), array_map('strtolower', $this->hardBlockedTables))) {
+                $this->line("⊘ Skipped (system protected): {$table}");
+                $skippedCount++;
+                continue;
+            }
+
+            // Skip other excluded tables unless explicitly requested via --table
             if (!$targetTable && in_array(strtolower($table), array_map('strtolower', $this->skipTables))) {
                 $this->line("⊘ Skipped (excluded): {$table}");
                 $skippedCount++;
@@ -132,6 +152,29 @@ class SetupAuditTriggers extends Command
         }
 
         return $errorCount > 0 ? 1 : 0;
+    }
+
+    /**
+     * Always drop any accidental triggers on super_audit_logs.
+     * This prevents Error 1442 (recursive trigger) from ever occurring.
+     *
+     * @return void
+     */
+    protected function cleanupAuditLogsTriggers()
+    {
+        $triggerNames = [
+            'after_insert_super_audit_logs',
+            'after_update_super_audit_logs',
+            'after_delete_super_audit_logs',
+        ];
+
+        foreach ($triggerNames as $trigger) {
+            try {
+                DB::unprepared("DROP TRIGGER IF EXISTS {$trigger}");
+            } catch (\Exception $e) {
+                // Silently ignore
+            }
+        }
     }
 
     /**
