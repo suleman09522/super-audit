@@ -5,8 +5,8 @@ Complete guide to publish your package to Packagist.org
 ## ✅ Pre-Publishing Checklist
 
 Before publishing, ensure:
-- [x] Package tested with Laravel 12
-- [x] Composer.json supports Laravel 7-12
+- [x] Package tested with Laravel 13
+- [x] Composer.json supports Laravel 7-13
 - [x] README.md is complete
 - [x] LICENSE file exists
 - [ ] Update author information

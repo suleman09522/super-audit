@@ -396,7 +396,7 @@ class SetupAuditTriggers extends Command
             
             // Build JSON key-value pair for this column if it changed
             $jsonPair = "CONCAT('\"', '{$escapedColumn}', '\":', " .
-                       "COALESCE(JSON_QUOTE({$prefix}.`{$column}`), 'null'))";
+                       "JSON_EXTRACT(JSON_ARRAY({$prefix}.`{$column}`), '$[0]'))";
             
             $parts[] = "IF({$condition}, {$jsonPair}, NULL)";
         }

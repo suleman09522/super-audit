@@ -10,11 +10,22 @@ The package now supports:
 - ✅ Laravel 9.x (PHP 8.0 - 8.2)
 - ✅ Laravel 10.x (PHP 8.1 - 8.3)
 - ✅ Laravel 11.x (PHP 8.2 - 8.3)
-- ✅ Laravel 12.x (PHP 8.2 - 8.3) ← **Tested ✓**
+- ✅ Laravel 12.x (PHP 8.2 - 8.4)
+- ✅ Laravel 13.x (PHP 8.2 - 8.4) ← **Tested ✓**
 
 ## Testing with Different Laravel Versions
 
-### Laravel 12 (Already Tested ✓)
+### Laravel 13
+```bash
+composer create-project laravel/laravel:^13.0 test-l13
+cd test-l13
+composer config repositories.local '{"type": "path", "url": "../Super_audit/super-audit"}' --file composer.json
+composer require superaudit/super-audit:@dev
+php artisan migrate
+php artisan audit:setup-triggers
+```
+
+### Laravel 12
 ```bash
 composer create-project laravel/laravel:^12.0 test-l12
 cd test-l12

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0] - 2026-07-21
+
+### Added
+- **Laravel 13 & PHP 8.4 Support**: Updated package dependencies in `composer.json` and documentation to fully support Laravel 13.x and PHP 8.4.
+
+### Fixed
+- **UPDATE Trigger JSON Serialization Fix**: Replaced `JSON_QUOTE` with `JSON_EXTRACT(JSON_ARRAY(...))` in UPDATE triggers so non-string columns (integers, floats, decimals, booleans, and nulls) serialize properly instead of evaluating to `null`.
+
 ## [1.3.0] - 2026-01-05
 
 ### Added

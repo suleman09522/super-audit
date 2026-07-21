@@ -43,7 +43,7 @@ php artisan audit:setup-triggers
 ## Requirements
 
 - PHP 7.3 or higher
-- Laravel 7.x, 8.x, 9.x, 10.x, 11.x, or 12.x
+- Laravel 7.x, 8.x, 9.x, 10.x, 11.x, 12.x, or 13.x
 - MySQL 5.7+ (requires JSON_OBJECT support)
 
 ## Installation
