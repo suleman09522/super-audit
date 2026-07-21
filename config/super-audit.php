@@ -49,4 +49,30 @@ return [
     */
     'auto_recreate_triggers_on_migration' => true,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Store Request Payload
+    |--------------------------------------------------------------------------
+    |
+    | When set to true, HTTP request payload (request->all()) will be saved in
+    | super_audit_logs to see received data. Sensitive fields can be masked.
+    |
+    */
+    'store_request_payload' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hidden Payload Fields
+    |--------------------------------------------------------------------------
+    |
+    | Fields that should be masked or omitted from stored request payloads.
+    |
+    */
+    'hidden_payload_fields' => [
+        'password',
+        'password_confirmation',
+        'secret',
+        '_token',
+    ],
+
 ];

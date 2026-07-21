@@ -31,6 +31,7 @@ class AuditLog extends Model
         'action',
         'user_id',
         'url',
+        'payload',
         'old_data',
         'new_data',
     ];
@@ -41,6 +42,7 @@ class AuditLog extends Model
      * @var array
      */
     protected $casts = [
+        'payload' => 'array',
         'old_data' => 'array',
         'new_data' => 'array',
         'created_at' => 'datetime',

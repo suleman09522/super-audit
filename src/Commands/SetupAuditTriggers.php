@@ -359,13 +359,14 @@ class SetupAuditTriggers extends Command
                     
                     -- Only log if there are actual changes
                     IF @old_json != '{}' AND @new_json != '{}' THEN
-                        INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
+                        INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, payload, old_data, new_data, created_at)
                         VALUES (
                             '{$table}',
                             NEW.`{$primaryKeyColumn}`,
                             'update',
                             @current_user_id,
                             @current_url,
+                            @current_request_payload,
                             @old_json,
                             @new_json,
                             NOW()
@@ -421,13 +422,14 @@ class SetupAuditTriggers extends Command
             AFTER INSERT ON `{$table}`
             FOR EACH ROW
             BEGIN
-                INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
+                INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, payload, old_data, new_data, created_at)
                 VALUES (
                     '{$table}',
                     NEW.`{$primaryKeyColumn}`,
                     'insert',
                     @current_user_id,
                     @current_url,
+                    @current_request_payload,
                     NULL,
                     {$newJsonObject},
                     NOW()
@@ -485,13 +487,14 @@ class SetupAuditTriggers extends Command
             AFTER DELETE ON `{$table}`
             FOR EACH ROW
             BEGIN
-                INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, old_data, new_data, created_at)
+                INSERT INTO super_audit_logs (table_name, record_id, action, user_id, url, payload, old_data, new_data, created_at)
                 VALUES (
                     '{$table}',
                     OLD.`{$primaryKeyColumn}`,
                     'delete',
                     @current_user_id,
                     @current_url,
+                    @current_request_payload,
                     {$oldJsonObject},
                     NULL,
                     NOW()

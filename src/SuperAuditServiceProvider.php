@@ -72,6 +72,7 @@ class SuperAuditServiceProvider extends ServiceProvider
             try {
                 DB::statement("SET @current_user_id = NULL");
                 DB::statement("SET @current_url = NULL");
+                DB::statement("SET @current_request_payload = NULL");
             } catch (\Exception $e) {
                 // Database might not be available yet
             }

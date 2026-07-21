@@ -30,6 +30,29 @@ class SetAuditVariables
             
             // Set the current URL
             DB::statement("SET @current_url = ?", [$request->fullUrl()]);
+
+            // Set the current request payload (if enabled)
+            if (config('super-audit.store_request_payload', true)) {
+                $hiddenFields = config('super-audit.hidden_payload_fields', ['password', 'password_confirmation', 'secret', '_token']);
+                $input = $request->all();
+
+                foreach ($hiddenFields as $field) {
+                    if (is_array($input) && array_key_exists($field, $input)) {
+                        $input[$field] = '********';
+                    }
+                }
+
+                array_walk_recursive($input, function (&$value) {
+                    if ($value instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                        $value = '[File: ' . $value->getClientOriginalName() . ']';
+                    }
+                });
+
+                $payloadJson = !empty($input) ? json_encode($input, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) : null;
+                DB::statement("SET @current_request_payload = ?", [$payloadJson]);
+            } else {
+                DB::statement("SET @current_request_payload = NULL");
+            }
         } catch (\Exception $e) {
             // Log the error but don't prevent the request from continuing
             logger()->error('Super Audit: Failed to set audit variables', [

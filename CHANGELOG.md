@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.0] - 2026-07-21
+
+### Added
+- **Request Payload Logging**: HTTP request payload (`request->all()`) is now stored in a new `payload` column in `super_audit_logs`. You can now see exactly what data was received alongside what changed in the database.
+- **Sensitive Field Masking**: Configurable `hidden_payload_fields` list (defaults: `password`, `password_confirmation`, `secret`, `_token`) automatically masks sensitive fields before storing.
+- **File Upload Handling**: Uploaded files in requests are stored as `[File: filename.ext]` instead of binary data.
+- **New Config Options**: `store_request_payload` (bool, default `true`) and `hidden_payload_fields` (array) added to `config/super-audit.php`.
+- **New Migration**: `2024_01_02_000000_add_payload_to_audit_logs_table.php` for existing users to add the `payload` column safely (skips if already present).
+
 ## [1.4.0] - 2026-07-21
 
 ### Added
